@@ -1,49 +1,20 @@
-version: '3'
+# Use the official Spark image from Docker Hub
+FROM bitnami/spark:latest
 
-services:
-  spark-master:
-    image: bitnami/spark:latest
-    container_name: spark-master
-    environment:
-      - SPARK_MODE=master
-    ports:
-      - "8080:8080"  # Spark UI
-      - "7077:7077"  # Spark master port
-    volumes:
-      - ./workspace:/workspace  # Mount the current directory into the container
-    networks:
-      - spark-network
+# Set environment variables for Spark
+ENV SPARK_HOME=/opt/bitnami/spark
+ENV SPARK_MASTER_URL=spark://spark-master:7077
+ENV PYSPARK_PYTHON=python3
+ENV PYSPARK_DRIVER_PYTHON=python3
 
-  spark-worker:
-    image: bitnami/spark:latest
-    container_name: spark-worker
-    environment:
-      - SPARK_MODE=worker
-      - SPARK_MASTER=spark://spark-master:7077
-    depends_on:
-      - spark-master
-    networks:
-      - spark-network
+# Install Python packages (PySpark connector for Cassandra)
+RUN pip install pyspark cassandra-driver
 
-  cassandra:
-    image: cassandra:latest
-    container_name: cassandra
-    environment:
-      - CASSANDRA_CLUSTER_NAME=SparkCassandraCluster
-      - CASSANDRA_LISTEN_ADDRESS=cassandra
-      - CASSANDRA_RPC_ADDRESS=0.0.0.0
-      - CASSANDRA_BROADCAST_ADDRESS=cassandra
-      - CASSANDRA_BROADCAST_RPC_ADDRESS=cassandra
-    ports:
-      - "9042:9042"  # Cassandra port
-    volumes:
-      - cassandra-data:/var/lib/cassandra
-    networks:
-      - spark-network
+# Set the working directory
+WORKDIR /workspace
 
-volumes:
-  cassandra-data:
+# Copy your Python script into the container
+COPY . /workspace
 
-networks:
-  spark-network:
-    driver: bridge
+# Command to run Spark
+CMD ["spark-submit", "--master", "spark://spark-master:7077", "script/spark_cassandra_loader.py"]
