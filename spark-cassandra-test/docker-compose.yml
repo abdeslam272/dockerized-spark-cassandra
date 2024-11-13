@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  cassandra:
+    image: cassandra:latest
+    container_name: cassandra
+    environment:
+      - CASSANDRA_PASSWORD_SEEDER=yes
+      - CASSANDRA_KEYSPACE=test_keyspace
+    ports:
+      - "9042:9042"
+    networks:
+      - spark-cassandra-net
+
+  spark:
+    image: bitnami/spark:latest
+    container_name: spark-master
+    environment:
+      - SPARK_MODE=master
+      - SPARK_MASTER_PORT=7077
+      - SPARK_MASTER_WEBUI_PORT=8080
+      - SPARK_CASSANDRA_CONNECTION_HOST=cassandra
+    ports:
+      - "8080:8080"  # Spark UI
+    volumes:
+      - ./spark-cassandra-test:/opt/spark-app  # Mount the app folder into Spark container
+    command: ["/bin/bash", "-c", "spark-submit --master local[*] --packages com.datastax.spark:spark-cassandra-connector_2.12:3.3.0 /opt/spark-app/test_spark.py"]
+    networks:
+      - spark-cassandra-net
+
+networks:
+  spark-cassandra-net:
+    driver: bridge
