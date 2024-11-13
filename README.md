@@ -35,3 +35,23 @@ The Python script (`scripts/spark_cassandra_loader.py`) performs the following s
    ```bash
    docker-compose up
 3. The Spark job will automatically run, processing the CSV file and storing the data in Cassandra.
+
+### Accessing Spark and Cassandra
+
+- **Spark UI**: Accessible at [http://localhost:8080](http://localhost:8080) to monitor Spark jobs.
+- **Cassandra**: Accessible on port `9042`. You can connect using a Cassandra client for further data exploration.
+
+### Notes
+
+- The Cassandra database will be created with a keyspace and table as defined in `scripts/spark_cassandra_loader.py`.
+- Ensure any configuration, such as keyspace and table names, is set correctly in the Python script before running the pipeline.
+
+### Example CSV File
+
+- The project expects a CSV file located at `data/Superstore.csv` with headers and inferred schema.
+
+### Cleanup
+
+- To stop and remove all containers, run:
+   ```bash
+   docker compose down
