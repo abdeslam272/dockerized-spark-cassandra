@@ -1,6 +1,17 @@
 version: '3.8'
 
 services:
+  cassandra:
+    image: cassandra:latest
+    container_name: cassandra
+    environment:
+      - CASSANDRA_PASSWORD_SEEDER=yes
+      - CASSANDRA_KEYSPACE=test_keyspace
+    ports:
+      - "9042:9042"
+    networks:
+      - spark-cassandra-net
+
   spark-master:
     image: bitnami/spark:latest
     environment:
@@ -11,7 +22,8 @@ services:
     ports:
       - 8080:8080
     networks:
-      - spark-network
+      - spark-cassandra-net  # Correction ici pour utiliser le même réseau
+
   spark-worker:
     image: bitnami/spark:latest
     environment:
@@ -20,8 +32,8 @@ services:
     ports:
       - 8081:8081
     networks:
-      - spark-network
+      - spark-cassandra-net  # Correction ici aussi pour utiliser le même réseau
 
 networks:
-  spark-network:
+  spark-cassandra-net:  # Réseau défini ici
     driver: bridge
